@@ -16,7 +16,7 @@ async fn main() {
         .await
         .expect("Failed to connect to database");
 
-    let app: Router = routes::create_routes(db.clone());
+    let app: Router = routes::create_router(db.clone());
 
     let addr = "0.0.0.0:5000";
     println!("Server running on {addr}");
