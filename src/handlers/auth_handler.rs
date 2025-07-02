@@ -1,7 +1,12 @@
 // Authentication related handlers
 
 use crate::types::custom_json_decoder_types::CustomJson;
-use axum::{Extension, Json, http::StatusCode, response::IntoResponse};
+use axum::{
+    Extension,
+    Json,
+    http::header,
+    response::IntoResponse,
+};
 use bcrypt::{hash, verify};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde_json::json;
@@ -38,7 +43,7 @@ pub async fn user_register(
 pub async fn user_login(
     Extension(db): Extension<DatabaseConnection>,
     CustomJson(payload): CustomJson<LoginRequest>,
-) -> Result<Json<serde_json::Value>, AppError> {
+) -> Result<impl IntoResponse, AppError> {
     let user = users::Entity::find()
         .filter(users::Column::Username.eq(payload.username))
         .one(&db)
@@ -48,7 +53,16 @@ pub async fn user_login(
     if let Some(u) = user {
         if verify(payload.password, &u.password_hash).unwrap_or(false) {
             if let Ok(token) = jwt::encode_jwt(u.id) {
-                return Ok(Json(json!(AuthResponse { token })));
+                let body = Json(json!(AuthResponse { token: token.clone() }));
+                let mut response = body.into_response();
+                let cookie_value = format!(
+                    "auth_token={}; HttpOnly; Secure; SameSite=Lax; Path=/",
+                    token
+                );
+                response
+                    .headers_mut()
+                    .insert(header::SET_COOKIE, cookie_value.parse().unwrap());
+                return Ok(response);
             }
         }
     }
