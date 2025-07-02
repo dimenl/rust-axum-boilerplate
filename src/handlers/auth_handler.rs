@@ -1,6 +1,6 @@
 // Authentication related handlers
 
-use axum::{Extension, Json, response::IntoResponse};
+use axum::{Extension, Json, response::IntoResponse, http::StatusCode};
 use bcrypt::{hash, verify};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde_json::json;
@@ -20,6 +20,7 @@ pub async fn user_register(
     Json(payload): Json<RegisterRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let hashed = hash(payload.password, 4).map_err(|_| AppError::Message {
+        status_code: StatusCode::INTERNAL_SERVER_ERROR,
         error_message: "hash".into(),
         user_message: None,
     })?;
@@ -33,6 +34,7 @@ pub async fn user_register(
     match users::Entity::insert(user).exec(&db).await {
         Ok(_) => Ok(Json(json!({ "status": "ok" }))),
         Err(_) => Err(AppError::Message {
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
             error_message: "insert".into(),
             user_message: None,
         }),

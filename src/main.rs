@@ -38,16 +38,16 @@ async fn main() {
         .expect("Failed to connect to database");
 
     let app = routes::create_router()
-        .layer(Extension(db))
-        .layer(CorsLayer::permissive())
+        .fallback(not_found)
         .layer(DefaultBodyLimit::max(1024 * 1024))
-        .layer(PropagateRequestIdLayer::x_request_id())
-        .layer(TraceLayer::new_for_http())
+        .layer(Extension(db))
         .layer(SetRequestIdLayer::new(
             HeaderName::from_static("x-request-id"),
             MakeRequestUuid::default(),
         ))
-        .fallback(not_found);
+        .layer(PropagateRequestIdLayer::x_request_id())
+        .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::permissive());
 
     let addr = "0.0.0.0:5000";
     tracing::info!("Server running on {addr}");

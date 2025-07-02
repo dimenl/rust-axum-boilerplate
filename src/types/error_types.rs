@@ -34,6 +34,7 @@ pub enum AppError {
     NotFound,
     #[error("{error_message}")]
     Message {
+        status_code: StatusCode,
         error_message: String,
         user_message: Option<String>,
     },
@@ -53,12 +54,13 @@ impl From<AppError> for APIError {
                 user_message: "Not Found".into(),
             },
             AppError::Message {
+                status_code,
                 error_message,
                 user_message,
             } => {
                 let user_msg = user_message.unwrap_or_else(|| error_message.clone());
                 APIError {
-                    status_code: StatusCode::BAD_REQUEST,
+                    status_code,
                     error_message,
                     user_message: user_msg,
                 }
