@@ -1,12 +1,12 @@
 pub use sea_orm_migration::prelude::*;
 
-mod m20240821_174402_users;
+mod m20250702_174402_users;
 
 pub struct Migrator;
 
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
-        vec![Box::new(m20240821_174402_users::Migration)]
+        vec![Box::new(m20250702_174402_users::Migration)]
     }
 }

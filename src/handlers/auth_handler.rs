@@ -1,6 +1,6 @@
 // Authentication related handlers
 
-use axum::{Extension, Json, response::IntoResponse, http::StatusCode};
+use axum::{Extension, Json, http::StatusCode, response::IntoResponse};
 use bcrypt::{hash, verify};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde_json::json;
