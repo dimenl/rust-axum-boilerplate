@@ -69,6 +69,16 @@ pub async fn user_login(
     Err(AppError::Unauthorized)
 }
 
+pub async fn user_logout() -> impl IntoResponse {
+    let body = Json(json!({ "status": "ok" }));
+    let mut response = body.into_response();
+    let cookie_value = "auth_token=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0".to_string();
+    response
+        .headers_mut()
+        .insert(header::SET_COOKIE, cookie_value.parse().unwrap());
+    response
+}
+
 pub async fn protected() -> impl IntoResponse {
     Json(json!({ "message": "protected" }))
 }
