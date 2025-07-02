@@ -4,6 +4,7 @@ mod routes;
 mod types;
 mod utils;
 
+use axum::middleware::from_fn;
 use axum::{Extension, extract::DefaultBodyLimit, http::HeaderName, response::IntoResponse};
 use sea_orm::{Database, DatabaseConnection};
 use tower_http::{
@@ -12,7 +13,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use utils::DATABASE_URL;
+use utils::{DATABASE_URL, logging};
 
 async fn not_found() -> impl IntoResponse {
     types::error_types::AppError::NotFound
@@ -41,11 +42,12 @@ async fn main() {
         .fallback(not_found)
         .layer(DefaultBodyLimit::max(1024 * 1024))
         .layer(Extension(db))
+        .layer(from_fn(logging::logger))
+        .layer(PropagateRequestIdLayer::x_request_id())
         .layer(SetRequestIdLayer::new(
             HeaderName::from_static("x-request-id"),
             MakeRequestUuid::default(),
         ))
-        .layer(PropagateRequestIdLayer::x_request_id())
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive());
 
