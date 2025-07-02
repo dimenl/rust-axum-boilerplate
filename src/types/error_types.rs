@@ -1,13 +1,29 @@
 use axum::{
-    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
+    Json,
 };
-use serde::Serialize;
+use serde_json::json;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct APIError {
-    pub message: String,
+    pub status_code: StatusCode,
+    pub error_message: String,
+    pub user_message: String,
+}
+
+impl IntoResponse for APIError {
+    fn into_response(self) -> Response {
+        (
+            self.status_code,
+            Json(json!({
+                "status_code": self.status_code.to_string(),
+                "error_message": self.error_message,
+                "user_message": self.user_message
+            })),
+        )
+            .into_response()
+    }
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -20,16 +36,30 @@ pub enum AppError {
     Message(String),
 }
 
+impl From<AppError> for APIError {
+    fn from(err: AppError) -> Self {
+        match err {
+            AppError::Unauthorized => APIError {
+                status_code: StatusCode::UNAUTHORIZED,
+                error_message: "Unauthorized".into(),
+                user_message: "Unauthorized".into(),
+            },
+            AppError::NotFound => APIError {
+                status_code: StatusCode::NOT_FOUND,
+                error_message: "Not Found".into(),
+                user_message: "Not Found".into(),
+            },
+            AppError::Message(msg) => APIError {
+                status_code: StatusCode::BAD_REQUEST,
+                error_message: msg.clone(),
+                user_message: msg,
+            },
+        }
+    }
+}
+
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let status = match self {
-            AppError::Unauthorized => StatusCode::UNAUTHORIZED,
-            AppError::NotFound => StatusCode::NOT_FOUND,
-            AppError::Message(_) => StatusCode::BAD_REQUEST,
-        };
-        let api_error = APIError {
-            message: self.to_string(),
-        };
-        (status, Json(api_error)).into_response()
+        APIError::from(self).into_response()
     }
 }
