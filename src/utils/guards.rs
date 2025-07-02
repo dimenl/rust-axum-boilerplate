@@ -1,11 +1,12 @@
 use axum::{
-    http::{Request, StatusCode, header::AUTHORIZATION},
+    http::{Request, header::AUTHORIZATION},
     middleware::Next,
     response::{IntoResponse, Response},
 };
 
 use uuid::Uuid;
 
+use crate::types::error_types::AppError;
 use crate::utils::{constants::TOKEN_PREFIX, jwt};
 
 pub async fn jwt_guard<B>(mut req: Request<B>, next: Next<B>) -> Response {
@@ -20,5 +21,5 @@ pub async fn jwt_guard<B>(mut req: Request<B>, next: Next<B>) -> Response {
             }
         }
     }
-    StatusCode::UNAUTHORIZED.into_response()
+    AppError::Unauthorized.into_response()
 }
