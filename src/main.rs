@@ -43,11 +43,11 @@ async fn main() {
         .layer(DefaultBodyLimit::max(1024 * 1024))
         .layer(Extension(db))
         .layer(from_fn(logging::logger))
+        .layer(PropagateRequestIdLayer::x_request_id())
         .layer(SetRequestIdLayer::new(
             HeaderName::from_static("x-request-id"),
             MakeRequestUuid::default(),
         ))
-        .layer(PropagateRequestIdLayer::x_request_id())
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive());
 
