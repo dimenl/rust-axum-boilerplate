@@ -1,5 +1,6 @@
 // Authentication related handlers
 
+use crate::types::custom_json_decoder_types::CustomJson;
 use axum::{Extension, Json, http::StatusCode, response::IntoResponse};
 use bcrypt::{hash, verify};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
@@ -17,7 +18,7 @@ use crate::{
 
 pub async fn user_register(
     Extension(db): Extension<DatabaseConnection>,
-    Json(payload): Json<RegisterRequest>,
+    CustomJson(payload): CustomJson<RegisterRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let hashed = hash(payload.password, 4).map_err(|_| AppError::Message {
         status_code: StatusCode::INTERNAL_SERVER_ERROR,
@@ -33,10 +34,10 @@ pub async fn user_register(
 
     match users::Entity::insert(user).exec(&db).await {
         Ok(_) => Ok(Json(json!({ "status": "ok" }))),
-        Err(_) => Err(AppError::Message {
+        Err(e) => Err(AppError::Message {
             status_code: StatusCode::INTERNAL_SERVER_ERROR,
-            error_message: "insert".into(),
-            user_message: None,
+            error_message: e.to_string(),
+            user_message: Some("Something went wrong!".to_string()),
         }),
     }
 }

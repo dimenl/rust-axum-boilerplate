@@ -1,10 +1,11 @@
 use axum::{
-    body::{Body, Bytes, boxed},
+    body::{Body, Bytes},
     http::Request,
     middleware::Next,
     response::Response,
 };
 use hyper::body::to_bytes;
+use std::boxed;
 use tracing::info;
 
 /// Routes where request and response bodies should not be logged
@@ -14,7 +15,7 @@ pub const BODY_BLACKLIST: &[&str] = &["/api/auth/register", "/api/auth/login"];
 ///
 /// It logs headers and `x-request-id` for all requests. For routes not in
 /// `BODY_BLACKLIST` it also logs the request and response bodies.
-pub async fn logger(mut req: Request<Body>, next: Next<Body>) -> Response {
+pub async fn logger(mut req: Request<Body>, next: Next) -> Response {
     let path = req.uri().path().to_owned();
     let method = req.method().to_string();
     let request_id = req
