@@ -45,7 +45,7 @@ pub async fn user_login(
         .filter(users::Column::Username.eq(payload.username))
         .one(&db)
         .await
-        .unwrap();
+        .map_err(|e| AppError::InternalServerError(e.to_string()))?;
 
     if let Some(u) = user {
         if verify(payload.password, &u.password_hash).unwrap_or(false) {
@@ -58,9 +58,14 @@ pub async fn user_login(
                     "auth_token={}; HttpOnly; Secure; SameSite=Lax; Path=/",
                     token
                 );
-                response
-                    .headers_mut()
-                    .insert(header::SET_COOKIE, cookie_value.parse().unwrap());
+                response.headers_mut().insert(
+                    header::SET_COOKIE,
+                    cookie_value
+                        .parse()
+                        .map_err(|e: axum::http::header::InvalidHeaderValue| {
+                            AppError::InternalServerError(e.to_string())
+                        })?,
+                );
                 return Ok(response);
             }
         }
