@@ -5,14 +5,12 @@ mod types;
 mod db;
 
 use axum::Router;
-use dotenv::dotenv;
 use sea_orm::{Database, DatabaseConnection};
+use utils::DATABASE_URL;
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL not set");
-    let db: DatabaseConnection = Database::connect(&database_url)
+    let db: DatabaseConnection = Database::connect(DATABASE_URL.as_str())
         .await
         .expect("Failed to connect to database");
 
