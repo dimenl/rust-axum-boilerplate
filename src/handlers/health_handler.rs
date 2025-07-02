@@ -1,5 +1,8 @@
 // Health check handler
 
-pub async fn health() {
-    // TODO: implement health check
+use axum::{response::IntoResponse, Json};
+use serde_json::json;
+
+pub async fn health() -> impl IntoResponse {
+    Json(json!({ "status": "ok" }))
 }
