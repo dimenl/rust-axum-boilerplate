@@ -1,11 +1,10 @@
 use axum::{
-    body::{Body, Bytes},
+    body::{to_bytes, Body, Bytes},
     http::Request,
     middleware::Next,
     response::Response,
 };
-use hyper::body::to_bytes;
-use std::boxed;
+use std::mem;
 use tracing::info;
 
 /// Routes where request and response bodies should not be logged
@@ -30,11 +29,12 @@ pub async fn logger(mut req: Request<Body>, next: Next) -> Response {
 
     let req_body_string;
     if log_body {
-        let bytes = to_bytes(req.body_mut())
+        let body = mem::take(req.body_mut());
+        let bytes = to_bytes(body, usize::MAX)
             .await
             .unwrap_or_else(|_| Bytes::new());
         req_body_string = String::from_utf8_lossy(&bytes).to_string();
-        *req.body_mut() = Body::from(bytes);
+        *req.body_mut() = Body::from(bytes.clone());
     } else {
         req_body_string = String::new();
     }
@@ -44,11 +44,12 @@ pub async fn logger(mut req: Request<Body>, next: Next) -> Response {
 
     let res_body_string;
     if log_body {
-        let bytes = to_bytes(res.body_mut())
+        let body = mem::take(res.body_mut());
+        let bytes = to_bytes(body, usize::MAX)
             .await
             .unwrap_or_else(|_| Bytes::new());
         res_body_string = String::from_utf8_lossy(&bytes).to_string();
-        *res.body_mut() = boxed(Body::from(bytes));
+        *res.body_mut() = Body::from(bytes.clone());
     } else {
         res_body_string = String::new();
     }
