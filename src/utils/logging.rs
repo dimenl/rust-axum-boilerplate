@@ -54,7 +54,7 @@ pub async fn logger(mut req: Request<Body>, next: Next<Body>) -> Response {
 
     if log_body {
         info!(
-            request_id,
+            %request_id,
             method = %method,
             path = %path,
             status = %status,
@@ -64,7 +64,7 @@ pub async fn logger(mut req: Request<Body>, next: Next<Body>) -> Response {
         );
     } else {
         info!(
-            request_id,
+            %request_id,
             method = %method,
             path = %path,
             status = %status,

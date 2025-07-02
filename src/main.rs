@@ -42,14 +42,14 @@ async fn main() {
         .fallback(not_found)
         .layer(DefaultBodyLimit::max(1024 * 1024))
         .layer(Extension(db))
+        .layer(from_fn(logging::logger))
         .layer(SetRequestIdLayer::new(
             HeaderName::from_static("x-request-id"),
             MakeRequestUuid::default(),
         ))
         .layer(PropagateRequestIdLayer::x_request_id())
         .layer(TraceLayer::new_for_http())
-        .layer(CorsLayer::permissive())
-        .layer(from_fn(logging::logger));
+        .layer(CorsLayer::permissive());
 
     let addr = "0.0.0.0:5000";
     tracing::info!("Server running on {addr}");
