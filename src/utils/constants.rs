@@ -36,4 +36,10 @@ lazy_static! {
             .and_then(|v| v.parse::<usize>().ok())
             .unwrap_or(3600)
     };
+
+    /// Directory where log files will be written
+    pub static ref LOG_DIR: String = {
+        dotenv().ok();
+        env::var("LOG_DIR").unwrap_or_else(|_| "logs".into())
+    };
 }

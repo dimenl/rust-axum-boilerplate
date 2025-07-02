@@ -10,6 +10,7 @@ The application reads configuration from environment variables using `dotenv`. T
 - `ACCESS_TOKEN` &ndash; secret used to sign and verify JWT access tokens.
 - `BCRYPT_COST` &ndash; cost factor for password hashing. Defaults to `12` if not set.
 - `TOKEN_EXPIRATION_SECS` &ndash; lifetime of issued JWT tokens in seconds. Defaults to `3600`.
+- `LOG_DIR` &ndash; directory where log files are written. Defaults to `logs`.
 
 These variables can be placed in a `.env` file at the project root or exported in your shell.
 

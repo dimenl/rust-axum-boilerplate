@@ -13,7 +13,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use utils::{DATABASE_URL, logging};
+use utils::{DATABASE_URL, LOG_DIR, logging};
 
 async fn not_found() -> impl IntoResponse {
     types::error_types::AppError::NotFound
@@ -21,7 +21,7 @@ async fn not_found() -> impl IntoResponse {
 
 #[tokio::main]
 async fn main() {
-    let file_appender = tracing_appender::rolling::daily("logs", "app.log");
+    let file_appender = tracing_appender::rolling::daily(LOG_DIR.as_str(), "app.log");
     let (file_writer, _guard) = tracing_appender::non_blocking(file_appender);
 
     tracing_subscriber::registry()
@@ -53,10 +53,6 @@ async fn main() {
 
     let addr = "0.0.0.0:5000";
     tracing::info!("Server running on {addr}");
-    let listener = tokio::net::TcpListener::bind(addr)
-        .await
-        .unwrap();
-    axum::serve(listener, app)
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
