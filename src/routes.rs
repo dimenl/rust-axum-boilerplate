@@ -17,6 +17,10 @@ pub fn unguarded_routes() -> Router {
         .route("/api/health", get(handlers::health_handler::health))
         .route("/api/auth/login", post(handlers::auth_handler::user_login))
         .route(
+            "/api/auth/logout",
+            post(handlers::auth_handler::user_logout),
+        )
+        .route(
             "/api/auth/register",
             post(handlers::auth_handler::user_register),
         )
