@@ -27,4 +27,13 @@ lazy_static! {
             .and_then(|v| v.parse::<u32>().ok())
             .unwrap_or(12)
     };
+
+    /// Lifetime in seconds for issued JWT tokens
+    pub static ref TOKEN_EXPIRATION_SECS: usize = {
+        dotenv().ok();
+        env::var("TOKEN_EXPIRATION_SECS")
+            .ok()
+            .and_then(|v| v.parse::<usize>().ok())
+            .unwrap_or(3600)
+    };
 }
