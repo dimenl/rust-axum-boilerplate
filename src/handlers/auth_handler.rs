@@ -10,6 +10,7 @@ use crate::{
     },
     utils::jwt,
 };
+use crate::utils::TOKEN_EXPIRATION_SECS;
 use axum::{Extension, Json, http::header, response::IntoResponse};
 use bcrypt::{hash, verify};
 use crate::utils::BCRYPT_COST;
@@ -56,8 +57,9 @@ pub async fn user_login(
                 }));
                 let mut response = body.into_response();
                 let cookie_value = format!(
-                    "auth_token={}; HttpOnly; Secure; SameSite=Lax; Path=/",
-                    token
+                    "auth_token={}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={}",
+                    token,
+                    *TOKEN_EXPIRATION_SECS
                 );
                 response.headers_mut().insert(
                     header::SET_COOKIE,
