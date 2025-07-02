@@ -32,6 +32,8 @@ pub enum AppError {
     Unauthorized,
     #[error("Not Found")]
     NotFound,
+    #[error("Internal Server Error: {0}")]
+    InternalServerError(String),
     #[error("{error_message}")]
     Message {
         status_code: StatusCode,
@@ -52,6 +54,11 @@ impl From<AppError> for APIError {
                 status_code: StatusCode::NOT_FOUND,
                 error_message: "Not Found".into(),
                 user_message: "Not Found".into(),
+            },
+            AppError::InternalServerError(msg) => APIError {
+                status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                error_message: msg,
+                user_message: "Something went wrong. Please try again after sometime!".into(),
             },
             AppError::Message {
                 status_code,

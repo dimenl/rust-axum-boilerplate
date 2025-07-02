@@ -20,11 +20,8 @@ pub async fn user_register(
     Extension(db): Extension<DatabaseConnection>,
     CustomJson(payload): CustomJson<RegisterRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let hashed = hash(payload.password, 4).map_err(|_| AppError::Message {
-        status_code: StatusCode::INTERNAL_SERVER_ERROR,
-        error_message: "hash".into(),
-        user_message: None,
-    })?;
+    let hashed =
+        hash(payload.password, 4).map_err(|e| AppError::InternalServerError(e.to_string()))?;
 
     let user = users::ActiveModel {
         id: Set(Uuid::new_v4()),
@@ -34,17 +31,13 @@ pub async fn user_register(
 
     match users::Entity::insert(user).exec(&db).await {
         Ok(_) => Ok(Json(json!({ "status": "ok" }))),
-        Err(e) => Err(AppError::Message {
-            status_code: StatusCode::INTERNAL_SERVER_ERROR,
-            error_message: e.to_string(),
-            user_message: Some("Something went wrong!".to_string()),
-        }),
+        Err(e) => Err(AppError::InternalServerError(e.to_string())),
     }
 }
 
 pub async fn user_login(
     Extension(db): Extension<DatabaseConnection>,
-    Json(payload): Json<LoginRequest>,
+    CustomJson(payload): CustomJson<LoginRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let user = users::Entity::find()
         .filter(users::Column::Username.eq(payload.username))

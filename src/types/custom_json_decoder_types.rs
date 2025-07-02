@@ -23,7 +23,7 @@ where
             Ok(b) => b,
             Err(e) => {
                 return Err(AppError::Message {
-                    status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                    status_code: StatusCode::BAD_REQUEST,
                     error_message: e.to_string(),
                     user_message: Some("Failed to read request body".to_string()),
                 });
@@ -32,7 +32,7 @@ where
         serde_json::from_slice::<T>(&bytes)
             .map(CustomJson)
             .map_err(|e| AppError::Message {
-                status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                status_code: StatusCode::BAD_REQUEST,
                 error_message: e.to_string(),
                 user_message: Some("Invalid request body".to_string()),
             })
