@@ -1,30 +1,25 @@
 // Authentication related handlers
 
 use crate::types::custom_json_decoder_types::CustomJson;
-use axum::{
-    Extension,
-    Json,
-    http::header,
-    response::IntoResponse,
+use crate::{
+    db::entity::users,
+    types::{
+        auth_types::{LoginReq, LoginRes, RegisterReq},
+        error_types::AppError,
+        util_types::GenericJsonRes,
+    },
+    utils::jwt,
 };
+use axum::{Extension, Json, http::header, response::IntoResponse};
 use bcrypt::{hash, verify};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::{
-    db::entity::users,
-    types::{
-        auth_types::{AuthResponse, LoginRequest, RegisterRequest},
-        error_types::AppError,
-    },
-    utils::jwt,
-};
-
 pub async fn user_register(
     Extension(db): Extension<DatabaseConnection>,
-    CustomJson(payload): CustomJson<RegisterRequest>,
-) -> Result<Json<serde_json::Value>, AppError> {
+    CustomJson(payload): CustomJson<RegisterReq>,
+) -> Result<GenericJsonRes, AppError> {
     let hashed =
         hash(payload.password, 4).map_err(|e| AppError::InternalServerError(e.to_string()))?;
 
@@ -35,14 +30,16 @@ pub async fn user_register(
     };
 
     match users::Entity::insert(user).exec(&db).await {
-        Ok(_) => Ok(Json(json!({ "status": "ok" }))),
+        Ok(_) => Ok(GenericJsonRes {
+            data: json!({ "status": "ok" }),
+        }),
         Err(e) => Err(AppError::InternalServerError(e.to_string())),
     }
 }
 
 pub async fn user_login(
     Extension(db): Extension<DatabaseConnection>,
-    CustomJson(payload): CustomJson<LoginRequest>,
+    CustomJson(payload): CustomJson<LoginReq>,
 ) -> Result<impl IntoResponse, AppError> {
     let user = users::Entity::find()
         .filter(users::Column::Username.eq(payload.username))
@@ -53,7 +50,9 @@ pub async fn user_login(
     if let Some(u) = user {
         if verify(payload.password, &u.password_hash).unwrap_or(false) {
             if let Ok(token) = jwt::encode_jwt(u.id) {
-                let body = Json(json!(AuthResponse { token: token.clone() }));
+                let body = Json(json!(LoginRes {
+                    token: token.clone()
+                }));
                 let mut response = body.into_response();
                 let cookie_value = format!(
                     "auth_token={}; HttpOnly; Secure; SameSite=Lax; Path=/",
