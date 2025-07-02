@@ -53,8 +53,10 @@ async fn main() {
 
     let addr = "0.0.0.0:5000";
     tracing::info!("Server running on {addr}");
-    axum::Server::bind(&addr.parse().unwrap())
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
+        .unwrap();
+    axum::serve(listener, app)
         .await
         .unwrap();
 }
