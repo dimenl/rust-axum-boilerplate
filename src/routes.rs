@@ -13,7 +13,8 @@ pub fn guarded_routes() -> Router {
 pub fn unguarded_routes() -> Router {
     Router::new()
         .route("/health", get(handlers::health_handler::health))
-        .route("/login", post(handlers::auth_handler::login))
+        .route("/login", post(handlers::auth_handler::user_login))
+        .route("/register", post(handlers::auth_handler::user_register))
 }
 
 pub fn create_routes(db: DatabaseConnection) -> Router {

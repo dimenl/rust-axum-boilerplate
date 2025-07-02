@@ -1,1 +1,1 @@
-// SeaORM entities will be defined here
+pub mod users;
