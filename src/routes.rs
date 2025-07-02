@@ -1,10 +1,8 @@
 use axum::{
-    Extension, Router,
+    Router,
     middleware::from_fn,
     routing::{get, post},
 };
-use sea_orm::DatabaseConnection;
-use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 use crate::{handlers, utils};
 
@@ -18,14 +16,14 @@ pub fn unguarded_routes() -> Router {
     Router::new()
         .route("/api/health", get(handlers::health_handler::health))
         .route("/api/auth/login", post(handlers::auth_handler::user_login))
-        .route("/api/auth/register", post(handlers::auth_handler::user_register))
+        .route(
+            "/api/auth/register",
+            post(handlers::auth_handler::user_register),
+        )
 }
 
-pub fn create_router(db: DatabaseConnection) -> Router {
+pub fn create_router() -> Router {
     Router::new()
         .merge(unguarded_routes())
         .merge(guarded_routes())
-        .layer(CorsLayer::permissive())
-        .layer(TraceLayer::new_for_http())
-        .layer(Extension(db))
 }
