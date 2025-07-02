@@ -40,13 +40,13 @@ async fn main() {
     let app = routes::create_router()
         .layer(Extension(db))
         .layer(CorsLayer::permissive())
+        .layer(DefaultBodyLimit::max(1024 * 1024))
+        .layer(PropagateRequestIdLayer::x_request_id())
+        .layer(TraceLayer::new_for_http())
         .layer(SetRequestIdLayer::new(
             HeaderName::from_static("x-request-id"),
             MakeRequestUuid::default(),
         ))
-        .layer(PropagateRequestIdLayer::x_request_id())
-        .layer(DefaultBodyLimit::max(1024 * 1024))
-        .layer(TraceLayer::new_for_http())
         .fallback(not_found);
 
     let addr = "0.0.0.0:5000";
