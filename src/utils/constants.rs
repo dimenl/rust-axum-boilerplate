@@ -18,4 +18,13 @@ lazy_static! {
         dotenv().ok();
         env::var("ACCESS_TOKEN").expect("ACCESS_TOKEN must be set")
     };
+
+    /// Cost factor used by bcrypt when hashing passwords
+    pub static ref BCRYPT_COST: u32 = {
+        dotenv().ok();
+        env::var("BCRYPT_COST")
+            .ok()
+            .and_then(|v| v.parse::<u32>().ok())
+            .unwrap_or(12)
+    };
 }

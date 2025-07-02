@@ -12,6 +12,7 @@ use crate::{
 };
 use axum::{Extension, Json, http::header, response::IntoResponse};
 use bcrypt::{hash, verify};
+use crate::utils::BCRYPT_COST;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde_json::json;
 use uuid::Uuid;
@@ -20,8 +21,8 @@ pub async fn user_register(
     Extension(db): Extension<DatabaseConnection>,
     CustomJson(payload): CustomJson<RegisterReq>,
 ) -> Result<GenericJsonRes, AppError> {
-    let hashed =
-        hash(payload.password, 4).map_err(|e| AppError::InternalServerError(e.to_string()))?;
+    let hashed = hash(payload.password, *BCRYPT_COST)
+        .map_err(|e| AppError::InternalServerError(e.to_string()))?;
 
     let user = users::ActiveModel {
         id: Set(Uuid::new_v4()),

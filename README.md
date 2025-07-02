@@ -8,6 +8,7 @@ The application reads configuration from environment variables using `dotenv`. T
 
 - `DATABASE_URL` &ndash; connection string for the database. Example: `postgres://user:password@localhost:5432/app`.
 - `ACCESS_TOKEN` &ndash; secret used to sign and verify JWT access tokens.
+- `BCRYPT_COST` &ndash; cost factor for password hashing. Defaults to `12` if not set.
 
 These variables can be placed in a `.env` file at the project root or exported in your shell.
 
