@@ -19,7 +19,10 @@ pub async fn user_register(
     Extension(db): Extension<DatabaseConnection>,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let hashed = hash(payload.password, 4).map_err(|_| AppError::Message("hash".into()))?;
+    let hashed = hash(payload.password, 4).map_err(|_| AppError::Message {
+        error_message: "hash".into(),
+        user_message: None,
+    })?;
 
     let user = users::ActiveModel {
         id: Set(Uuid::new_v4()),
@@ -29,7 +32,10 @@ pub async fn user_register(
 
     match users::Entity::insert(user).exec(&db).await {
         Ok(_) => Ok(Json(json!({ "status": "ok" }))),
-        Err(_) => Err(AppError::Message("insert".into())),
+        Err(_) => Err(AppError::Message {
+            error_message: "insert".into(),
+            user_message: None,
+        }),
     }
 }
 

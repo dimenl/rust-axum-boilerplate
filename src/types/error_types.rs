@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use serde_json::json;
 
@@ -32,8 +32,11 @@ pub enum AppError {
     Unauthorized,
     #[error("Not Found")]
     NotFound,
-    #[error("{0}")]
-    Message(String),
+    #[error("{error_message}")]
+    Message {
+        error_message: String,
+        user_message: Option<String>,
+    },
 }
 
 impl From<AppError> for APIError {
@@ -49,11 +52,17 @@ impl From<AppError> for APIError {
                 error_message: "Not Found".into(),
                 user_message: "Not Found".into(),
             },
-            AppError::Message(msg) => APIError {
-                status_code: StatusCode::BAD_REQUEST,
-                error_message: msg.clone(),
-                user_message: msg,
-            },
+            AppError::Message {
+                error_message,
+                user_message,
+            } => {
+                let user_msg = user_message.unwrap_or_else(|| error_message.clone());
+                APIError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    error_message,
+                    user_message: user_msg,
+                }
+            }
         }
     }
 }
