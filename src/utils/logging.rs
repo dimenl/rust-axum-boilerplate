@@ -1,11 +1,11 @@
 use axum::{
-    body::{to_bytes, Body, Bytes},
+    body::{Body, Bytes, to_bytes},
     http::Request,
     middleware::Next,
     response::Response,
 };
 use std::mem;
-use tracing::info;
+use tracing::{Instrument, info, info_span};
 
 /// Routes where request and response bodies should not be logged
 pub const BODY_BLACKLIST: &[&str] = &["/api/auth/register", "/api/auth/login"];
@@ -39,7 +39,8 @@ pub async fn logger(mut req: Request<Body>, next: Next) -> Response {
         req_body_string = String::new();
     }
 
-    let mut res = next.run(req).await;
+    let span = info_span!("request", %request_id);
+    let mut res = next.run(req).instrument(span).await;
     let status = res.status();
 
     let res_body_string;
